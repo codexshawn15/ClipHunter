@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Clip Hunter</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #080808;
+    --surface: rgba(255,255,255,0.03);
+    --border: rgba(255,255,255,0.08);
+    --red: #ff3d3d;
+    --green: #00ff9d;
+    --blue: #00e5ff;
+    --orange: #ff9500;
+    --text: #ffffff;
+    --muted: rgba(255,255,255,0.4);
+    --dimmer: rgba(255,255,255,0.2);
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    padding-bottom: 60px;
+  }
+
+  /* ── SETUP SCREEN ── */
+  #setup-screen {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+
+  .setup-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 16px;
+    padding: 36px 32px;
+    max-width: 480px;
+    width: 100%;
+  }
+
+  .logo { display: flex; align-items: center; gap: 12px; margin-bottom: 28px; }
+  .logo-icon {
+    width: 44px; height: 44px; border-radius: 10px;
+    background: linear-gradient(135deg, var(--red), #ff6b00);
+    display: flex; align-items: center; justify-content: center; font-size: 22px;
+  }
+  .logo-text { font-family: 'Bebas Neue', sans-serif; font-size: 28px; letter-spacing: 2px; }
+  .logo-sub { font-size: 11px; color: var(--muted); letter-spacing: 0.5px; }
+
+  .setup-label {
+    font-size: 12px; font-weight: 600; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;
+  }
+
+  .setup-input {
+    width: 100%; background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.12); border-radius: 8px;
+    color: #fff; font-family: 'DM Mono', monospace; font-size: 13px;
+    height: 48px; padding: 0 14px; outline: none;
+    transition: border-color 0.2s; margin-bottom: 16px;
+  }
+  .setup-input:focus { border-color: rgba(255,61,61,0.6); }
+  .setup-input::placeholder { color: rgba(255,255,255,0.2); }
+
+  .setup-hint {
+    font-size: 12px; color: var(--muted); line-height: 1.6; margin-bottom: 24px;
+  }
+  .setup-hint a { color: var(--red); text-decoration: none; }
+  .setup-hint a:hover { text-decoration: underline; }
+
+  .btn-primary {
+    width: 100%; background: var(--red); border: none; border-radius: 8px;
+    color: #fff; cursor: pointer; font-family: 'Bebas Neue', sans-serif;
+    font-size: 17px; letter-spacing: 1.5px; height: 50px;
+    transition: background 0.2s, transform 0.1s;
+  }
+  .btn-primary:hover { background: #ff5555; }
+  .btn-primary:active { transform: scale(0.98); }
+  .btn-primary:disabled { opacity: 0.35; cursor: not-allowed; }
+
+  /* ── MAIN APP ── */
+  #app { display: none; max-width: 700px; margin: 0 auto; padding: 24px 16px; }
+
+  /* Header */
+  .app-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 24px;
+  }
+  .app-logo { display: flex; align-items: center; gap: 10px; }
+  .app-logo-icon {
+    width: 32px; height: 32px; border-radius: 7px;
+    background: linear-gradient(135deg, var(--red), #ff6b00);
+    display: flex; align-items: center; justify-content: center; font-size: 16px;
+  }
+  .app-logo-text { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 2px; }
+  .key-badge {
+    font-size: 11px; color: var(--green); background: rgba(0,255,157,0.08);
+    border: 1px solid rgba(0,255,157,0.2); border-radius: 20px;
+    padding: 4px 10px; cursor: pointer; transition: all 0.2s;
+  }
+  .key-badge:hover { background: rgba(0,255,157,0.15); }
+
+  /* Tabs */
+  .tabs {
+    display: flex; gap: 4px; background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border); border-radius: 10px;
+    padding: 4px; margin-bottom: 24px;
+  }
+  .tab {
+    flex: 1; background: none; border: none; cursor: pointer;
+    font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600;
+    padding: 9px 12px; border-radius: 7px; transition: all 0.2s; color: var(--muted);
+  }
+  .tab.active { background: rgba(255,255,255,0.09); color: #fff; }
+
+  /* Niche pills */
+  .niches { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+  .niche-pill {
+    background: var(--surface); border: 1px solid var(--border);
+    cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 12px;
+    font-weight: 500; padding: 7px 14px; border-radius: 20px;
+    transition: all 0.2s; white-space: nowrap; color: var(--muted);
+  }
+
+  /* Section header */
+  .section-header {
+    display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;
+  }
+  .section-title { font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 1px; }
+  .section-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  .btn-refresh {
+    background: none; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px;
+    color: var(--muted); cursor: pointer; font-size: 11px; padding: 5px 12px;
+    transition: all 0.2s; font-family: 'DM Sans', sans-serif;
+  }
+  .btn-refresh:hover:not(:disabled) { color: #fff; border-color: rgba(255,255,255,0.3); }
+  .btn-refresh:disabled { opacity: 0.3; cursor: not-allowed; }
+
+  /* Trend cards */
+  .trend-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 14px 16px; margin-bottom: 10px;
+    transition: background 0.2s; border-left-width: 3px;
+  }
+  .trend-card:hover { background: rgba(255,255,255,0.05); }
+  .trend-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+  .trend-title { font-family: 'Bebas Neue', sans-serif; font-size: 16px; letter-spacing: 0.5px; margin-bottom: 4px; }
+  .trend-why { font-size: 12px; color: var(--muted); line-height: 1.5; }
+  .trend-meta { text-align: right; flex-shrink: 0; }
+  .trend-heat { font-size: 11px; font-weight: 700; letter-spacing: 1px; }
+  .trend-platform { font-size: 11px; color: rgba(255,255,255,0.3); margin-top: 2px; }
+  .trend-creator { margin-top: 8px; font-size: 11px; color: rgba(255,255,255,0.35); }
+  .trend-tip {
+    margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.06);
+    font-size: 11px; color: rgba(255,255,255,0.3);
+  }
+  .trend-open {
+    margin-top: 10px; display: inline-block;
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 5px; padding: 5px 12px; font-size: 11px; color: var(--muted);
+    text-decoration: none; cursor: pointer; transition: all 0.2s;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .trend-open:hover { background: rgba(255,255,255,0.12); color: #fff; }
+
+  /* Clip cards */
+  .clip-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 16px; margin-bottom: 12px;
+  }
+  .clip-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .clip-num {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: rgba(255,61,61,0.12); border: 1px solid var(--red);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 800; color: var(--red); flex-shrink: 0;
+  }
+  .clip-ts { font-family: 'Bebas Neue', sans-serif; font-size: 16px; letter-spacing: 0.5px; flex: 1; }
+  .btn-copy {
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 5px; padding: 4px 10px; font-size: 11px; color: var(--muted);
+    cursor: pointer; transition: all 0.2s; font-family: 'DM Sans', sans-serif;
+  }
+  .btn-copy.copied { color: var(--green); border-color: rgba(0,255,157,0.3); }
+  .clip-hook {
+    background: rgba(255,61,61,0.07); border: 1px solid rgba(255,61,61,0.18);
+    border-radius: 6px; padding: 10px 12px; margin-bottom: 10px;
+  }
+  .clip-hook-label {
+    font-size: 10px; color: var(--red); font-weight: 700;
+    letter-spacing: 1px; text-transform: uppercase; margin-bottom: 4px;
+  }
+  .clip-hook-text { font-size: 13px; color: #fff; line-height: 1.5; font-style: italic; }
+  .clip-why { font-size: 12px; color: var(--muted); line-height: 1.6; }
+  .clip-yt-link {
+    display: inline-block; margin-top: 10px;
+    background: rgba(255,61,61,0.1); border: 1px solid rgba(255,61,61,0.25);
+    border-radius: 5px; padding: 5px 12px; font-size: 11px; color: var(--red);
+    text-decoration: none; transition: all 0.2s;
+  }
+  .clip-yt-link:hover { background: rgba(255,61,61,0.2); }
+
+  /* URL input area */
+  .url-area { display: flex; flex-direction: column; gap: 8px; margin-bottom: 24px; }
+  .url-input {
+    width: 100%; background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.1); border-radius: 8px;
+    color: #fff; font-family: 'DM Mono', monospace; font-size: 13px;
+    height: 48px; padding: 0 14px; outline: none; transition: border-color 0.2s;
+  }
+  .url-input:focus { border-color: rgba(255,61,61,0.5); }
+  .url-input::placeholder { color: rgba(255,255,255,0.2); }
+  .btn-analyze {
+    width: 100%; background: var(--red); border: none; border-radius: 8px;
+    color: #fff; cursor: pointer; font-family: 'Bebas Neue', sans-serif;
+    font-size: 16px; letter-spacing: 1.5px; height: 48px; transition: all 0.2s;
+  }
+  .btn-analyze:hover:not(:disabled) { background: #ff5555; }
+  .btn-analyze:disabled { opacity: 0.35; cursor: not-allowed; }
+
+  /* Loader */
+  .loader {
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; gap: 14px; padding: 40px 0;
+  }
+  .spinner {
+    width: 24px; height: 24px; border: 2px solid rgba(255,255,255,0.08);
+    border-top-color: var(--red); border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loader-text { font-size: 13px; color: var(--muted); text-align: center; line-height: 1.6; }
+  .loader-sub { font-size: 11px; color: rgba(255,255,255,0.2); }
+
+  /* Empty / error states */
+  .empty {
+    border: 1px dashed rgba(255,255,255,0.08); border-radius: 12px;
+    padding: 44px 24px; text-align: center;
+  }
+  .empty-icon { font-size: 36px; margin-bottom: 12px; }
+  .empty-title { font-size: 14px; color: var(--muted); margin-bottom: 6px; }
+  .empty-sub { font-size: 12px; color: rgba(255,255,255,0.2); }
+  .error-box {
+    background: rgba(255,61,61,0.07); border: 1px solid rgba(255,61,61,0.2);
+    border-radius: 8px; padding: 14px 16px; font-size: 13px;
+    color: rgba(255,120,120,0.9); line-height: 1.6; margin-bottom: 12px;
+  }
+  .success-box {
+    display: flex; align-items: center; gap: 8px; margin-bottom: 16px;
+    padding: 10px 14px; background: rgba(0,255,157,0.06);
+    border: 1px solid rgba(0,255,157,0.15); border-radius: 8px;
+  }
+  .success-text { font-size: 12px; color: rgba(0,255,157,0.85); }
+
+  /* Tip box */
+  .tip-box {
+    margin-top: 20px; padding: 12px 16px;
+    background: rgba(255,255,255,0.02); border: 1px dashed rgba(255,255,255,0.07);
+    border-radius: 8px; font-size: 12px; color: rgba(255,255,255,0.3); line-height: 1.7;
+  }
+  .tip-box strong { color: rgba(255,255,255,0.5); }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 2px; }
+
+  /* Daily tracker */
+  .tracker {
+    display: grid; grid-template-columns: repeat(5, 1fr);
+    gap: 8px; margin-bottom: 20px;
+  }
+  .tracker-slot {
+    background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 8px; padding: 12px 8px; text-align: center; cursor: pointer;
+    transition: all 0.2s;
+  }
+  .tracker-slot.done {
+    background: rgba(0,255,157,0.07); border-color: rgba(0,255,157,0.25);
+  }
+  .tracker-slot-num { font-family: 'Bebas Neue', sans-serif; font-size: 22px; color: var(--muted); }
+  .tracker-slot.done .tracker-slot-num { color: var(--green); }
+  .tracker-slot-label { font-size: 10px; color: rgba(255,255,255,0.2); margin-top: 2px; }
+  .tracker-slot.done .tracker-slot-label { color: rgba(0,255,157,0.5); }
+  .tracker-count {
+    text-align: center; font-size: 13px; color: var(--muted);
+    margin-bottom: 16px; font-weight: 500;
+  }
+  .tracker-count span { color: #fff; font-weight: 600; }
+  .btn-reset {
+    display: block; margin: 0 auto 20px; background: none;
+    border: 1px solid rgba(255,255,255,0.08); border-radius: 6px;
+    color: rgba(255,255,255,0.25); font-size: 11px; padding: 5px 14px;
+    cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.2s;
+  }
+  .btn-reset:hover { color: var(--muted); }
+
+  .platform-row { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+  .platform-tag {
+    font-size: 11px; padding: 4px 10px; border-radius: 20px; font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+  .platform-tag.tiktok { background: rgba(0,229,255,0.08); color: var(--blue); border: 1px solid rgba(0,229,255,0.2); }
+  .platform-tag.yt { background: rgba(255,61,61,0.08); color: var(--red); border: 1px solid rgba(255,61,61,0.2); }
+  .platform-tag.ig { background: rgba(255,149,0,0.08); color: var(--orange); border: 1px solid rgba(255,149,0,0.2); }
+</style>
+</head>
+<body>
+
+<!-- ── SETUP SCREEN ── -->
+<div id="setup-screen">
+  <div class="setup-card">
+    <div class="logo">
+      <div class="logo-icon">✂️</div>
+      <div>
+        <div class="logo-text">CLIP HUNTER</div>
+        <div class="logo-sub">VIRAL TREND SCANNER + CLIP ANALYZER</div>
+      </div>
+    </div>
+
+    <div class="setup-label">Your Gemini API Key</div>
+    <input
+      class="setup-input"
+      id="api-key-input"
+      type="password"
+      placeholder="AIza..."
+      autocomplete="off"
+    />
+    <div class="setup-hint">
+      Get your free key at <a href="https://aistudio.google.com/apikey" target="_blank">aistudio.google.com/apikey</a> — no credit card needed. Your key is saved locally in your browser and never sent anywhere except Google's API.
+    </div>
+    <button class="btn-primary" id="save-key-btn" onclick="saveKey()">LET'S HUNT →</button>
+  </div>
+</div>
+
+<!-- ── MAIN APP ── -->
+<div id="app">
+  <div class="app-header">
+    <div class="app-logo">
+      <div class="app-logo-icon">✂️</div>
+      <div class="app-logo-text">CLIP HUNTER</div>
+    </div>
+    <div class="key-badge" onclick="changeKey()">🔑 change key</div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('trends', this)">🔥 Trends</button>
+    <button class="tab" onclick="switchTab('analyze', this)">✂️ Analyzer</button>
+    <button class="tab" onclick="switchTab('tracker', this)">📊 Tracker</button>
+  </div>
+
+  <!-- ── TRENDS TAB ── -->
+  <div id="tab-trends">
+    <div class="niches" id="niche-pills"></div>
+    <div class="section-header">
+      <div>
+        <div class="section-title" id="niche-title">🥊 MMA — What's Popping</div>
+        <div class="section-sub">Live AI scan · updated every refresh</div>
+      </div>
+      <button class="btn-refresh" id="refresh-btn" onclick="fetchTrends(true)">↻ refresh</button>
+    </div>
+    <div id="trends-content">
+      <div class="loader"><div class="spinner"></div><div class="loader-text">Scanning what's viral right now...</div></div>
+    </div>
+  </div>
+
+  <!-- ── ANALYZE TAB ── -->
+  <div id="tab-analyze" style="display:none">
+    <div style="margin-bottom:20px">
+      <div class="section-title" style="margin-bottom:6px">✂️ Find Your Best Clips</div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.6">
+        Paste any YouTube URL. AI finds the top 5 moments to clip with exact timestamps and a hook for each.
+      </div>
+    </div>
+    <div class="url-area">
+      <input class="url-input" id="video-url" type="text" placeholder="https://youtube.com/watch?v=..." />
+      <button class="btn-analyze" id="analyze-btn" onclick="analyzeVideo()">FIND CLIPS</button>
+    </div>
+    <div id="analyze-content">
+      <div class="empty">
+        <div class="empty-icon">🎬</div>
+        <div class="empty-title">Paste a YouTube URL above</div>
+        <div class="empty-sub">Works best with interviews, podcasts, long streams, debates</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── TRACKER TAB ── -->
+  <div id="tab-tracker" style="display:none">
+    <div class="section-title" style="margin-bottom:6px">📊 Daily Post Tracker</div>
+    <div style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:20px">
+      Tap a slot when you post. Goal: 5 clips a day across all platforms.
+    </div>
+    <div class="platform-row">
+      <div class="platform-tag tiktok">TikTok</div>
+      <div class="platform-tag yt">YouTube Shorts</div>
+      <div class="platform-tag ig">Instagram Reels</div>
+    </div>
+    <div class="tracker" id="tracker-slots"></div>
+    <div class="tracker-count" id="tracker-count">Today: <span>0</span> / 5 posted</div>
+    <button class="btn-reset" onclick="resetTracker()">reset today</button>
+    <div class="tip-box">
+      💡 <strong>The 5-a-day system:</strong> Post the same clip to TikTok, Shorts, and Reels. That's 3 posts from 1 clip. Two clips a day = 6 posts. Views stack across all three platforms simultaneously.
+    </div>
+  </div>
+</div>
+
+<script>
+// ── CONFIG ───────────────────────────────────────────────────────────────────
+const NICHES = [
+  { id: "mma",     label: "MMA / Combat", icon: "🥊", color: "#ff3c3c",  query: "MMA UFC boxing combat sports fights knockouts viral clips June 2026" },
+  { id: "gaming",  label: "Gaming",       icon: "🎮", color: "#00e5ff",  query: "gaming streamers viral clips moments highlights June 2026" },
+  { id: "finance", label: "Finance",      icon: "📈", color: "#00ff9d",  query: "finance crypto investing viral controversial moments clips June 2026" },
+  { id: "fitness", label: "Fitness",      icon: "💪", color: "#ff9500",  query: "fitness bodybuilding gym viral clips motivation June 2026" },
+];
+
+let activeNiche = "mma";
+let trendCache = {};
+let trackerState = JSON.parse(localStorage.getItem("tracker") || "[false,false,false,false,false]");
+let trackerDate = localStorage.getItem("trackerDate") || "";
+
+// ── KEY MANAGEMENT ────────────────────────────────────────────────────────────
+function getKey() { return localStorage.getItem("gemini_key") || ""; }
+
+function saveKey() {
+  const key = document.getElementById("api-key-input").value.trim();
+  if (!key) return;
+  localStorage.setItem("gemini_key", key);
+  document.getElementById("setup-screen").style.display = "none";
+  document.getElementById("app").style.display = "block";
+  initApp();
+}
+
+function changeKey() {
+  localStorage.removeItem("gemini_key");
+  document.getElementById("setup-screen").style.display = "flex";
+  document.getElementById("app").style.display = "none";
+  document.getElementById("api-key-input").value = "";
+}
+
+document.getElementById("api-key-input").addEventListener("keydown", e => {
+  if (e.key === "Enter") saveKey();
+});
+
+// ── GEMINI API ────────────────────────────────────────────────────────────────
+async function callGemini(prompt) {
+  const key = getKey();
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`;
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: { temperature: 0.8, maxOutputTokens: 2048 },
+    }),
+  });
+  const data = await res.json();
+  if (data.error) throw new Error(data.error.message);
+  return data.candidates?.[0]?.content?.parts?.[0]?.text || "";
+}
+
+function parseJSON(text) {
+  if (!text) return null;
+  try { const m = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/); if (m) return JSON.parse(m[1]); } catch {}
+  try { const m = text.match(/(\[[\s\S]*\])/); if (m) return JSON.parse(m[1]); } catch {}
+  try { return JSON.parse(text.trim()); } catch {}
+  return null;
+}
+
+// ── TABS ──────────────────────────────────────────────────────────────────────
+function switchTab(name, btn) {
+  ["trends","analyze","tracker"].forEach(t => {
+    document.getElementById("tab-" + t).style.display = t === name ? "block" : "none";
+  });
+  document.querySelectorAll(".tab").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+}
+
+// ── NICHES ────────────────────────────────────────────────────────────────────
+function buildNichePills() {
+  const container = document.getElementById("niche-pills");
+  container.innerHTML = "";
+  NICHES.forEach(n => {
+    const btn = document.createElement("button");
+    btn.className = "niche-pill";
+    btn.textContent = n.icon + " " + n.label;
+    btn.onclick = () => selectNiche(n.id);
+    btn.id = "pill-" + n.id;
+    container.appendChild(btn);
+  });
+  styleActivePill();
+}
+
+function styleActivePill() {
+  const n = NICHES.find(x => x.id === activeNiche);
+  NICHES.forEach(x => {
+    const pill = document.getElementById("pill-" + x.id);
+    if (!pill) return;
+    if (x.id === activeNiche) {
+      pill.style.color = n.color;
+      pill.style.borderColor = n.color;
+      pill.style.background = n.color + "15";
+    } else {
+      pill.style.color = "rgba(255,255,255,0.4)";
+      pill.style.borderColor = "rgba(255,255,255,0.08)";
+      pill.style.background = "rgba(255,255,255,0.03)";
+    }
+  });
+}
+
+function selectNiche(id) {
+  activeNiche = id;
+  styleActivePill();
+  const n = NICHES.find(x => x.id === id);
+  document.getElementById("niche-title").textContent = n.icon + " " + n.label + " — What's Popping";
+  document.getElementById("niche-title").style.color = n.color;
+  fetchTrends(false);
+}
+
+// ── TRENDS ────────────────────────────────────────────────────────────────────
+async function fetchTrends(force = false) {
+  if (!force && trendCache[activeNiche]) {
+    renderTrends(trendCache[activeNiche]);
+    return;
+  }
+
+  const btn = document.getElementById("refresh-btn");
+  btn.disabled = true;
+  btn.textContent = "scanning...";
+
+  const n = NICHES.find(x => x.id === activeNiche);
+  document.getElementById("trends-content").innerHTML = `
+    <div class="loader">
+      <div class="spinner"></div>
+      <div class="loader-text">Finding what's blowing up in ${n.label}...<br><span class="loader-sub">Takes about 10 seconds</span></div>
+    </div>`;
+
+  const prompt = `You are a viral content analyst helping a short-form video clipper find what to clip right now.
+
+Give me 6 specific trending topics or moments in ${n.query} that a clipper should jump on TODAY to get maximum views on TikTok, YouTube Shorts, and Instagram Reels.
+
+Be specific — real creator names, real events, real ongoing drama or hype. Think about what is being talked about RIGHT NOW in June 2026.
+
+Return ONLY a valid JSON array. Start with [ end with ]. No markdown, no explanation.
+
+Each object must have exactly these keys:
+- "title": specific trending topic or moment (string, max 8 words)
+- "why": one sentence why it is blowing up right now (string)
+- "heat": exactly one of: "🔥 VIRAL NOW" or "📈 RISING" or "⚡ TRENDING"
+- "platform": where it pops most e.g. "TikTok + Shorts" (string)
+- "creator": creator, fighter, or person involved (string)
+- "clip_tip": exactly what moment to clip (string)
+- "search": a YouTube search query to find the video (string)`;
+
+  try {
+    const raw = await callGemini(prompt);
+    const parsed = parseJSON(raw);
+    if (parsed && Array.isArray(parsed) && parsed.length > 0) {
+      trendCache[activeNiche] = parsed;
+      renderTrends(parsed);
+    } else {
+      document.getElementById("trends-content").innerHTML = `<div class="error-box">⚠️ Got an unexpected response. Hit refresh to try again.</div>`;
+    }
+  } catch (e) {
+    document.getElementById("trends-content").innerHTML = `<div class="error-box">⚠️ ${e.message}. Check your API key is correct.</div>`;
+  }
+
+  btn.disabled = false;
+  btn.textContent = "↻ refresh";
+}
+
+function renderTrends(trends) {
+  const n = NICHES.find(x => x.id === activeNiche);
+  let html = "";
+  trends.forEach(t => {
+    const ytSearch = encodeURIComponent(t.search || t.title + " " + (t.creator || ""));
+    html += `
+    <div class="trend-card" style="border-left-color:${n.color}">
+      <div class="trend-row">
+        <div style="flex:1">
+          <div class="trend-title">${t.title}</div>
+          <div class="trend-why">${t.why}</div>
+        </div>
+        <div class="trend-meta">
+          <div class="trend-heat" style="color:${n.color}">${t.heat}</div>
+          <div class="trend-platform">${t.platform}</div>
+        </div>
+      </div>
+      ${t.creator ? `<div class="trend-creator">🎬 <span style="color:rgba(255,255,255,0.6)">${t.creator}</span></div>` : ""}
+      ${t.clip_tip ? `<div class="trend-tip">✂️ ${t.clip_tip}</div>` : ""}
+      <a class="trend-open" href="https://www.youtube.com/results?search_query=${ytSearch}" target="_blank">🔍 Find on YouTube →</a>
+    </div>`;
+  });
+  html += `<div class="tip-box">💡 See something? Copy the YouTube URL and drop it in the <strong>Clip Analyzer</strong> tab to get exact timestamps.</div>`;
+  document.getElementById("trends-content").innerHTML = html;
+}
+
+// ── ANALYZER ──────────────────────────────────────────────────────────────────
+async function analyzeVideo() {
+  const url = document.getElementById("video-url").value.trim();
+  if (!url) return;
+
+  const btn = document.getElementById("analyze-btn");
+  btn.disabled = true;
+  btn.textContent = "ANALYZING...";
+
+  document.getElementById("analyze-content").innerHTML = `
+    <div class="loader">
+      <div class="spinner"></div>
+      <div class="loader-text">Finding the best moments to clip...<br><span class="loader-sub">Takes 10–20 seconds</span></div>
+    </div>`;
+
+  const vidId = (url.match(/(?:v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/) || [])[1] || "";
+
+  const prompt = `You are an expert viral short-form content strategist. A clipper wants to know the best moments to cut from this YouTube video for TikTok, YouTube Shorts, and Instagram Reels.
+
+Video URL: ${url}${vidId ? `\nVideo ID: ${vidId}` : ""}
+
+Based on your knowledge of this video, identify the 5 best moments to clip. Focus on: shocking statements, emotional peaks, funny moments, controversial takes, quotable one-liners, or anything that makes someone stop scrolling.
+
+If you don't have specific knowledge of this exact video, use the video ID and URL context to make smart educated guesses about what a video like this would contain, with realistic timestamps.
+
+Return ONLY a valid JSON array. Start with [ end with ]. No markdown, no explanation.
+
+Each object must have exactly these keys:
+- "timestamp_start": string like "4:32"
+- "timestamp_end": string like "5:18"
+- "hook": punchy caption to post with this clip — make it stop-scroll worthy (string)
+- "why_viral": 1-2 sentences on why this moment will get views (string)
+- "video_title": your best guess at the video title — ONLY include on the first object (string)`;
+
+  try {
+    const raw = await callGemini(prompt);
+    const parsed = parseJSON(raw);
+    if (parsed && Array.isArray(parsed) && parsed.length > 0) {
+      renderClips(parsed, url, vidId);
+    } else {
+      document.getElementById("analyze-content").innerHTML = `<div class="error-box">⚠️ Couldn't analyze this video. Try a well-known interview, podcast, or stream.</div>`;
+    }
+  } catch (e) {
+    document.getElementById("analyze-content").innerHTML = `<div class="error-box">⚠️ ${e.message}</div>`;
+  }
+
+  btn.disabled = false;
+  btn.textContent = "FIND CLIPS";
+}
+
+function renderClips(clips, url, vidId) {
+  const title = clips[0]?.video_title || "";
+  let html = "";
+
+  if (title) {
+    html += `<div style="margin-bottom:16px">
+      <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Video</div>
+      <div style="font-size:14px;color:rgba(255,255,255,0.85);font-weight:500">${title}</div>
+    </div>`;
+  }
+
+  html += `<div class="success-box"><span>✅</span><span class="success-text">Found <strong>${clips.length} clip opportunities</strong> — copy timestamps into CapCut</span></div>`;
+
+  clips.forEach((clip, i) => {
+    const tsSeconds = tsToSeconds(clip.timestamp_start);
+    const ytLink = vidId ? `https://www.youtube.com/watch?v=${vidId}&t=${tsSeconds}s` : url;
+    html += `
+    <div class="clip-card">
+      <div class="clip-header">
+        <div class="clip-num">${i + 1}</div>
+        <div class="clip-ts">${clip.timestamp_start} → ${clip.timestamp_end}</div>
+        <button class="btn-copy" onclick="copyTS(this, '${clip.timestamp_start} - ${clip.timestamp_end}')">copy</button>
+      </div>
+      <div class="clip-hook">
+        <div class="clip-hook-label">Hook / Caption</div>
+        <div class="clip-hook-text">"${clip.hook}"</div>
+      </div>
+      <div class="clip-why">${clip.why_viral}</div>
+      <a class="clip-yt-link" href="${ytLink}" target="_blank">▶ Jump to this moment on YouTube →</a>
+    </div>`;
+  });
+
+  html += `<div class="tip-box">💡 <strong>Workflow:</strong> Click "Jump to moment" → find the clip in YouTube → download with yt-dlp or screen record → trim in CapCut → add captions → post to TikTok, Shorts & Reels same day.</div>`;
+  document.getElementById("analyze-content").innerHTML = html;
+}
+
+function tsToSeconds(ts) {
+  if (!ts) return 0;
+  const parts = ts.split(":").map(Number);
+  if (parts.length === 2) return parts[0] * 60 + parts[1];
+  if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
+  return 0;
+}
+
+function copyTS(btn, text) {
+  navigator.clipboard.writeText(text).catch(() => {});
+  btn.textContent = "✓ copied";
+  btn.classList.add("copied");
+  setTimeout(() => { btn.textContent = "copy"; btn.classList.remove("copied"); }, 1500);
+}
+
+document.getElementById("video-url").addEventListener("keydown", e => {
+  if (e.key === "Enter") analyzeVideo();
+});
+
+// ── TRACKER ───────────────────────────────────────────────────────────────────
+function initTracker() {
+  const today = new Date().toDateString();
+  if (trackerDate !== today) {
+    trackerState = [false, false, false, false, false];
+    trackerDate = today;
+    saveTracker();
+  }
+  renderTracker();
+}
+
+function renderTracker() {
+  const container = document.getElementById("tracker-slots");
+  container.innerHTML = "";
+  trackerState.forEach((done, i) => {
+    const slot = document.createElement("div");
+    slot.className = "tracker-slot" + (done ? " done" : "");
+    slot.innerHTML = `<div class="tracker-slot-num">${i + 1}</div><div class="tracker-slot-label">${done ? "posted ✓" : "tap when posted"}</div>`;
+    slot.onclick = () => toggleSlot(i);
+    container.appendChild(slot);
+  });
+  const count = trackerState.filter(Boolean).length;
+  document.getElementById("tracker-count").innerHTML = `Today: <span>${count}</span> / 5 posted`;
+}
+
+function toggleSlot(i) {
+  trackerState[i] = !trackerState[i];
+  saveTracker();
+  renderTracker();
+}
+
+function saveTracker() {
+  localStorage.setItem("tracker", JSON.stringify(trackerState));
+  localStorage.setItem("trackerDate", trackerDate);
+}
+
+function resetTracker() {
+  trackerState = [false, false, false, false, false];
+  saveTracker();
+  renderTracker();
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+function initApp() {
+  buildNichePills();
+  selectNiche("mma");
+  initTracker();
+}
+
+// Boot
+if (getKey()) {
+  document.getElementById("setup-screen").style.display = "none";
+  document.getElementById("app").style.display = "block";
+  initApp();
+}
+</script>
+</body>
+</html>
